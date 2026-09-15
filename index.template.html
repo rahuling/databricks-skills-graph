@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks Skills Knowledge Graph</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23FF3621' d='M16 2l12 6.5v15L16 30 4 23.5v-15L16 2zm0 3.2L7 10.1v11.8l9 4.9 9-4.9V10.1L16 5.2z'/%3E%3Ccircle fill='%23FF3621' cx='16' cy='16' r='3.4'/%3E%3C/svg%3E">
+<meta name="description" content="An interactive prerequisite graph of Databricks certification skills — traverse tracks, take practice questions, earn XP, and chart the shortest path to any skill.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F5; --panel:#FFFFFF; --ink:#1B3139; --muted:#5B6B78; --faint:#8496A3;
+    --line:#DDE3EA; --red:#FF3621; --red-d:#C4200F; --green:#00A972; --amber:#F5A623;
+    --blue:#2272B4; --violet:#8B5CF6; --shadow:0 1px 2px rgba(27,49,57,.06),0 8px 24px rgba(27,49,57,.08);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--bg);color:var(--ink);overflow:hidden}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  a{color:var(--red-d);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .mono{font-family:'DM Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  /* ---------- shell ---------- */
+  #app{display:grid;grid-template-columns:300px 1fr;grid-template-rows:60px 1fr;height:100vh}
+  header{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 20px;
+    background:var(--ink);color:#fff;z-index:30}
+  header .logo{width:26px;height:26px;flex:0 0 auto}
+  header h1{font-size:16px;font-weight:700;margin:0;letter-spacing:-.01em}
+  header .sub{font-size:12px;color:#9FB0BC;font-weight:500}
+  header .spacer{flex:1}
+  .hbtn{font-size:12.5px;font-weight:600;color:#CBD5DD;padding:7px 12px;border-radius:8px}
+  .hbtn:hover{background:rgba(255,255,255,.1);color:#fff}
+
+  /* ---------- sidebar ---------- */
+  aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:16px}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+  .lbl{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:0 0 9px}
+  select{width:100%;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink);
+    background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 10px}
+  .toggle{display:flex;background:#fff;border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
+  .toggle button{flex:1;font-size:12.5px;font-weight:600;color:var(--muted);padding:7px;border-radius:6px}
+  .toggle button.on{background:var(--ink);color:#fff}
+
+  /* progress dash */
+  .xpwrap{display:flex;align-items:baseline;gap:8px}
+  .xpnum{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .xpxp{font-size:12px;font-weight:600;color:var(--muted)}
+  .lvl{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--red-d);
+    background:#FFE9E5;border-radius:20px;padding:4px 11px;margin-top:2px}
+  .bar{height:8px;background:#fff;border:1px solid var(--line);border-radius:6px;margin-top:11px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--red),#FF7A63);border-radius:6px;transition:width .5s}
+  .barcap{font-size:11px;color:var(--muted);margin-top:6px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+  .stat b{display:block;font-size:19px;font-weight:700;line-height:1.1}
+  .stat span{font-size:10.5px;color:var(--muted);font-weight:600}
+
+  .badges{display:flex;flex-wrap:wrap;gap:7px}
+  .badge{font-size:11px;font-weight:600;padding:5px 9px;border-radius:8px;background:#fff;border:1px solid var(--line);
+    display:inline-flex;align-items:center;gap:5px;color:var(--muted)}
+  .badge.got{background:#E7F8F1;border-color:#B8E9D6;color:#00764E}
+  .badge .e{font-size:13px}
+
+  .legend div{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:7px}
+  .legend .sw{width:12px;height:12px;border-radius:4px;flex:0 0 auto}
+  .legrow{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);margin-bottom:6px}
+  .legrow svg{flex:0 0 auto}
+  .mini{font-size:11px;color:var(--faint);line-height:1.5}
+
+  /* ---------- canvas ---------- */
+  main{position:relative;overflow:hidden;background:
+    radial-gradient(circle at 1px 1px, #D7DEE6 1px, transparent 0) 0 0/22px 22px, var(--bg)}
+  #svg{width:100%;height:100%;display:block;cursor:grab}
+  #svg.grabbing{cursor:grabbing}
+  .edge{fill:none;stroke:#B4C0CB;stroke-width:1.4}
+  .edge.hard{stroke-dasharray:none}
+  .edge.soft{stroke-dasharray:5 4}
+  .edge.cooccur{stroke-dasharray:1.5 4;stroke-linecap:round}
+  .edge.hl{stroke:var(--ink);stroke-width:2.2;opacity:1}
+  .edge.dim{opacity:.12}
+  .node{cursor:pointer}
+  .node .ring{fill:#fff;stroke-width:3}
+  .node .core{stroke:#fff;stroke-width:1.5}
+  .node .lab{font-size:11px;font-weight:600;fill:var(--ink);pointer-events:none}
+  .node .dom{font-size:9px;fill:var(--faint);pointer-events:none}
+  .node.dim{opacity:.22}
+  .node.locked .core{opacity:.4}
+  .node .chk{font-size:12px;font-weight:700;fill:#fff;text-anchor:middle;pointer-events:none}
+  .ctrls{position:absolute;left:16px;bottom:16px;display:flex;gap:6px}
+  .ctrls button{width:34px;height:34px;background:#fff;border:1px solid var(--line);border-radius:9px;
+    font-size:17px;font-weight:700;color:var(--muted);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center}
+  .ctrls button:hover{color:var(--ink)}
+  .hint{position:absolute;right:16px;bottom:16px;font-size:11px;color:var(--faint);background:rgba(255,255,255,.8);
+    padding:6px 10px;border-radius:8px;backdrop-filter:blur(4px)}
+  .banner{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:20;
+    background:var(--ink);color:#fff;font-size:12.5px;font-weight:600;padding:9px 15px;border-radius:10px;
+    box-shadow:var(--shadow);display:none;align-items:center;gap:10px;max-width:90%}
+  .banner button{color:#9FB0BC;font-weight:700}
+  .banner button:hover{color:#fff}
+
+  /* list view */
+  #list{position:absolute;inset:0;overflow-y:auto;padding:22px;display:none}
+  .track-group{max-width:900px;margin:0 auto 26px}
+  .track-h{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+  .track-h b{font-size:15px;font-weight:700}
+  .track-h .pct{font-size:12px;color:var(--muted);font-weight:600}
+  .row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+    border-radius:11px;padding:11px 14px;margin-bottom:8px;cursor:pointer}
+  .row:hover{border-color:#B4C0CB;box-shadow:var(--shadow)}
+  .row .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .row .t{flex:1}
+  .row .t b{font-size:13.5px;font-weight:600;display:block}
+  .row .t span{font-size:11.5px;color:var(--muted)}
+  .row .st{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
+  .st.mastered{background:#E7F8F1;color:#00764E}
+  .st.learning{background:#FDF0D9;color:#9A6400}
+  .st.available{background:#E7EFF8;color:#1B5A94}
+  .st.locked{background:#EEF1F5;color:#8496A3}
+
+  /* ---------- drawer ---------- */
+  #drawer{position:absolute;top:0;right:0;height:100%;width:420px;max-width:92vw;background:var(--panel);
+    border-left:1px solid var(--line);box-shadow:-12px 0 40px rgba(27,49,57,.12);
+    transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:40;
+    display:flex;flex-direction:column}
+  #drawer.open{transform:none}
+  .dhead{padding:20px 22px 16px;border-bottom:1px solid var(--line)}
+  .dhead .area{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.06em;padding:4px 10px;border-radius:20px;color:#fff}
+  .dhead h2{font-size:20px;font-weight:700;margin:11px 0 6px;letter-spacing:-.01em;line-height:1.25}
+  .dhead .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);font-weight:500}
+  .dclose{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:8px;font-size:18px;color:var(--faint)}
+  .dclose:hover{background:var(--bg);color:var(--ink)}
+  .dbody{flex:1;overflow-y:auto;padding:18px 22px 90px}
+  .dbody h3{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:20px 0 9px}
+  .dbody h3:first-child{margin-top:2px}
+  .dbody p{font-size:14px;line-height:1.55;color:var(--ink);margin:0}
+  .chips{display:flex;flex-direction:column;gap:6px}
+  .chip{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:8px 11px;border-radius:9px;
+    background:var(--bg);border:1px solid var(--line);cursor:pointer}
+  .chip:hover{border-color:#B4C0CB}
+  .chip .d{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .chip .type{margin-left:auto;font-size:10px;font-weight:700;color:var(--faint);text-transform:uppercase}
+  .linkrow{display:flex;align-items:center;gap:9px;font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid var(--line);margin-bottom:7px;flex-wrap:wrap}
+  .linkrow .tg{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+  .tg.docs{background:#E7EFF8;color:#1B5A94}.tg.academy{background:#FFE9E5;color:var(--red-d)}
+  .tg.free{background:#E7F8F1;color:#00764E}
+  .linkrow .linksub{flex-basis:100%;font-size:10.5px;color:var(--faint);font-weight:500;padding-left:2px}
+  .quiz{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:15px;margin-top:6px}
+  .quiz .q{font-size:13.5px;font-weight:600;line-height:1.45;margin-bottom:11px}
+  .opt{display:block;width:100%;text-align:left;font-size:13px;padding:10px 12px;border:1px solid var(--line);
+    border-radius:9px;background:#fff;margin-bottom:7px;transition:.12s}
+  .opt:hover{border-color:#B4C0CB}
+  .opt.correct{background:#E7F8F1;border-color:var(--green);font-weight:600}
+  .opt.wrong{background:#FDECEA;border-color:var(--red)}
+  .exp{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:6px;padding:10px;background:#fff;border-radius:8px;border:1px solid var(--line);display:none}
+  .dfoot{position:absolute;bottom:0;left:0;right:0;padding:14px 22px;background:var(--panel);border-top:1px solid var(--line);display:flex;gap:9px}
+  .btn{flex:1;font-size:13px;font-weight:700;padding:12px;border-radius:10px;text-align:center}
+  .btn.primary{background:var(--green);color:#fff}.btn.primary:hover{background:#00915F}
+  .btn.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line)}.btn.ghost:hover{border-color:#B4C0CB}
+  .btn.on{background:var(--amber);color:#fff}
+  .btn.path{background:var(--ink);color:#fff}.btn.path:hover{background:#0F2027}
+
+  /* toast */
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(30px);opacity:0;
+    background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:12px 18px;border-radius:11px;
+    box-shadow:var(--shadow);z-index:60;transition:.3s;display:flex;align-items:center;gap:9px;pointer-events:none}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+  #toast .e{font-size:17px}
+
+  @media(max-width:820px){
+    #app{grid-template-columns:1fr;grid-template-rows:60px auto 1fr}
+    aside{grid-row:2;max-height:38vh;border-right:none;border-bottom:1px solid var(--line)}
+    main{grid-row:3}
+    #drawer{width:100%}
+    header h1{font-size:14px}.header-sub{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path fill="#FF3621" d="M16 2l12 6.5v15L16 30 4 23.5v-15L16 2zm0 3.2L7 10.1v11.8l9 4.9 9-4.9V10.1L16 5.2z"/><circle fill="#FF3621" cx="16" cy="16" r="3.4"/></svg>
+    <div>
+      <h1>Databricks Skills Knowledge Graph</h1>
+      <div class="sub header-sub">Traverse the certification skill map · earn XP · chart your path</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="hbtn" id="btnAbout">About</button>
+    <button class="hbtn" id="btnReset">Reset progress</button>
+  </header>
+
+  <aside>
+    <div class="card">
+      <p class="lbl">Learning track</p>
+      <select id="trackSel"></select>
+      <div class="toggle" style="margin-top:10px">
+        <button data-view="graph" class="on">Graph</button>
+        <button data-view="list">List</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="lbl">Your progress</p>
+      <div class="xpwrap"><span class="xpnum" id="xpNum">0</span><span class="xpxp">XP</span></div>
+      <div class="lvl" id="lvlChip">⚡ Level 1 · Novice</div>
+      <div class="bar"><i id="lvlBar" style="width:0%"></i></div>
+      <div class="barcap" id="lvlCap"></div>
+      <div class="stats">
+        <div class="stat"><b id="stMast">0</b><span>Skills mastered</span></div>
+        <div class="stat"><b id="stStreak">0</b><span>Day streak 🔥</span></div>
+      </div>
+      <div class="barcap" id="trackProg" style="margin-top:12px"></div>
+      <div class="bar"><i id="trackBar" style="width:0%;background:linear-gradient(90deg,var(--green),#4FD1A5)"></i></div>
+    </div>
+
+    <div class="card">
+      <p class="lbl">Badges</p>
+      <div class="badges" id="badges"></div>
+    </div>
+
+    <div class="card legend">
+      <p class="lbl">Node status</p>
+      <div><span class="sw" style="background:var(--green)"></span>Mastered</div>
+      <div><span class="sw" style="background:var(--amber)"></span>Learning</div>
+      <div><span class="sw" style="background:var(--blue)"></span>Available (prereqs met)</div>
+      <div><span class="sw" style="background:#B4C0CB"></span>Locked</div>
+      <p class="lbl" style="margin-top:14px">Edges</p>
+      <div class="legrow"><svg width="30" height="6"><line x1="0" y1="3" x2="30" y2="3" stroke="#8496A3" stroke-width="1.6"/></svg>Hard prerequisite</div>
+      <div class="legrow"><svg width="30" height="6"><line x1="0" y1="3" x2="30" y2="3" stroke="#8496A3" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Soft prerequisite</div>
+      <div class="legrow"><svg width="30" height="6"><line x1="0" y1="3" x2="30" y2="3" stroke="#8496A3" stroke-width="1.6" stroke-dasharray="1.5 4" stroke-linecap="round"/></svg>Often learned together</div>
+    </div>
+    <p class="mini" id="disclaimer"></p>
+  </aside>
+
+  <main>
+    <svg id="svg"><g id="viewport"><g id="edges"></g><g id="nodes"></g></g></svg>
+    <div class="banner" id="banner"><span id="bannerTxt"></span><button id="bannerClear">Clear ✕</button></div>
+    <div class="ctrls">
+      <button id="zoomIn" title="Zoom in">+</button>
+      <button id="zoomOut" title="Zoom out">−</button>
+      <button id="zoomFit" title="Fit to view" style="font-size:13px">⊡</button>
+    </div>
+    <div class="hint">Scroll to zoom · drag to pan · click a node</div>
+    <div id="list"></div>
+  </main>
+</div>
+
+<div id="drawer">
+  <button class="dclose" id="dClose">✕</button>
+  <div class="dhead">
+    <span class="area" id="dArea"></span>
+    <h2 id="dTitle"></h2>
+    <div class="meta" id="dMeta"></div>
+  </div>
+  <div class="dbody" id="dBody"></div>
+  <div class="dfoot" id="dFoot"></div>
+</div>
+
+<div id="toast"></div>
+
+<!--__GRAPH_DATA__-->
+<script>
+/* ============================ data load ============================ */
+(function(){
+  const G = window.GRAPH;
+  if(!G){ document.body.innerHTML='<p style="padding:40px;font-family:sans-serif">Graph data missing. Regenerate this page with <code>python3 build_graph.py</code>.</p>'; return; }
+  boot(G);
+})();
+
+function boot(G){
+  const NODES = G.nodes, EDGES = G.edges;
+  const nodeById = Object.fromEntries(NODES.map(n=>[n.id,n]));
+  const areaById = Object.fromEntries(G.areas.map(a=>[a.id,a]));
+  const trackById = Object.fromEntries(G.tracks.map(t=>[t.id,t]));
+  document.getElementById('disclaimer').textContent = G.meta.disclaimer;
+
+  /* ---- persistent state ---- */
+  const KEY='dbx-skills-progress-v1';
+  const state = load();
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+  state.progress = state.progress || {};        // id -> 'mastered' | 'learning'
+  state.badges   = state.badges   || {};        // badgeId -> true
+  state.streak   = state.streak   || 0;
+  state.lastDay  = state.lastDay  || null;
+
+  let view='graph', currentTrack='de-assoc', selected=null, pathSet=null;
+
+  /* ---- status logic ---- */
+  const hardPrereqs = id => EDGES.filter(e=>e.to===id && e.type==='hard').map(e=>e.from);
+  const allPrereqs  = id => EDGES.filter(e=>e.to===id).map(e=>({id:e.from,type:e.type}));
+  const unlocks     = id => EDGES.filter(e=>e.from===id).map(e=>({id:e.to,type:e.type}));
+  function status(id){
+    if(state.progress[id]==='mastered') return 'mastered';
+    if(state.progress[id]==='learning') return 'learning';
+    const hp = hardPrereqs(id);
+    return hp.every(p=>state.progress[p]==='mastered') ? 'available' : 'locked';
+  }
+  const STCOL = {mastered:'#00A972', learning:'#F5A623', available:'#2272B4', locked:'#B4C0CB'};
+
+  /* ---- XP / level ---- */
+  const LEVELS=[[0,'Novice'],[500,'Explorer'],[1500,'Practitioner'],[3500,'Specialist'],
+                [6000,'Expert'],[9500,'Architect'],[14000,'Luminary']];
+  function totalXP(){ return NODES.reduce((s,n)=>s+(state.progress[n.id]==='mastered'?n.xp:0),0); }
+  function levelInfo(xp){
+    let i=0; for(let k=0;k<LEVELS.length;k++) if(xp>=LEVELS[k][0]) i=k;
+    const cur=LEVELS[i], next=LEVELS[i+1];
+    return {idx:i+1, name:cur[1], floor:cur[0], ceil:next?next[0]:cur[0], max:!next};
+  }
+
+  /* ============================ layout ============================ */
+  const R_BASE=15, COL_W=210, ROW_H=92;
+  let layout={};   // id -> {x,y}
+  function computeLayout(ids){
+    const set=new Set(ids);
+    const sub = EDGES.filter(e=>set.has(e.from)&&set.has(e.to));
+    const indeg={}; ids.forEach(i=>indeg[i]=0);
+    sub.forEach(e=>indeg[e.to]++);
+    // longest-path layering (Kahn)
+    const layer={}; ids.forEach(i=>layer[i]=0);
+    const q=ids.filter(i=>indeg[i]===0); const deg={...indeg};
+    while(q.length){ const u=q.shift();
+      sub.filter(e=>e.from===u).forEach(e=>{ layer[e.to]=Math.max(layer[e.to],layer[u]+1);
+        if(--deg[e.to]===0) q.push(e.to); }); }
+    // column buckets
+    const cols={}; ids.forEach(i=>{ (cols[layer[i]]=cols[layer[i]]||[]).push(i); });
+    const nbr={}; ids.forEach(i=>nbr[i]=[]);
+    sub.forEach(e=>{ nbr[e.from].push(e.to); nbr[e.to].push(e.from); });
+    let order={}; Object.values(cols).forEach(c=>c.forEach((id,k)=>order[id]=k));
+    // barycenter sweeps to reduce crossings
+    for(let pass=0;pass<6;pass++){
+      Object.keys(cols).forEach(L=>{
+        cols[L].sort((a,b)=>{
+          const ba=nbr[a].length?nbr[a].reduce((s,x)=>s+order[x],0)/nbr[a].length:order[a];
+          const bb=nbr[b].length?nbr[b].reduce((s,x)=>s+order[x],0)/nbr[b].length:order[b];
+          return ba-bb; });
+        cols[L].forEach((id,k)=>order[id]=k);
+      });
+    }
+    const maxRows=Math.max(...Object.values(cols).map(c=>c.length));
+    const pos={};
+    Object.keys(cols).forEach(L=>{
+      const c=cols[L]; const off=(maxRows-c.length)/2;
+      c.forEach((id,k)=>{ pos[id]={x:60+L*COL_W, y:50+(k+off)*ROW_H}; });
+    });
+    return {pos, w:60+Object.keys(cols).length*COL_W+80, h:60+maxRows*ROW_H};
+  }
+
+  /* ============================ render graph ============================ */
+  const svg=document.getElementById('svg'), vp=document.getElementById('viewport'),
+        gEdges=document.getElementById('edges'), gNodes=document.getElementById('nodes');
+  let tx=0, ty=0, scale=1;
+  function applyTransform(){ vp.setAttribute('transform',`translate(${tx},${ty}) scale(${scale})`); }
+
+  function visibleIds(){
+    if(currentTrack==='all') return NODES.map(n=>n.id);
+    return NODES.filter(n=>n.tracks.includes(currentTrack)).map(n=>n.id);
+  }
+  const NS='http://www.w3.org/2000/svg';
+  function el(t,a){ const e=document.createElementNS(NS,t); for(const k in a) e.setAttribute(k,a[k]); return e; }
+  function wrapLabel(s,max){ const w=s.split(' '),L=[]; let cur='';
+    w.forEach(x=>{ if((cur+' '+x).trim().length>max){ L.push(cur.trim()); cur=x; } else cur+=' '+x; });
+    if(cur.trim())L.push(cur.trim()); return L.slice(0,3); }
+
+  function drawGraph(){
+    const ids=visibleIds(); const {pos,w,h}=computeLayout(ids); layout=pos;
+    gEdges.innerHTML=''; gNodes.innerHTML='';
+    const set=new Set(ids);
+    EDGES.filter(e=>set.has(e.from)&&set.has(e.to)).forEach(e=>{
+      const a=pos[e.from], b=pos[e.to]; if(!a||!b) return;
+      const mx=(a.x+b.x)/2;
+      const p=el('path',{class:`edge ${e.type}`, 'data-f':e.from,'data-t':e.to,
+        d:`M${a.x+R_BASE},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x-R_BASE-4},${b.y}`,
+        'marker-end':'url(#arrow)'});
+      gEdges.appendChild(p);
+    });
+    ids.forEach(id=>{
+      const n=nodeById[id], p=pos[id], st=status(id), col=areaById[n.area].color;
+      const r=R_BASE+Math.min(9,(n.weight||8)*0.28);
+      const g=el('g',{class:`node ${st}`, 'data-id':id, transform:`translate(${p.x},${p.y})`});
+      g.appendChild(el('circle',{class:'ring', r:r+4, stroke:STCOL[st]}));
+      g.appendChild(el('circle',{class:'core', r, fill:col}));
+      if(st==='mastered'){ const t=el('text',{class:'chk',y:4}); t.textContent='✓'; g.appendChild(t); }
+      else if(st==='locked'){ const t=el('text',{class:'chk',y:4,'font-size':11}); t.textContent='🔒'; g.appendChild(t); }
+      const lines=wrapLabel(n.label,20);
+      lines.forEach((ln,i)=>{ const t=el('text',{class:'lab',x:0,y:r+16+i*13,'text-anchor':'middle'}); t.textContent=ln; g.appendChild(t); });
+      const d=el('text',{class:'dom',x:0,y:r+16+lines.length*13,'text-anchor':'middle'});
+      d.textContent=(n.weight?n.weight+'% · ':'')+areaById[n.area].name; g.appendChild(d);
+      g.addEventListener('click',ev=>{ev.stopPropagation(); openNode(id);});
+      g.addEventListener('mouseenter',()=>hover(id));
+      g.addEventListener('mouseleave',()=>{ if(!selected&&!pathSet) clearHl(); else applyHl(); });
+      gNodes.appendChild(g);
+    });
+    // arrow marker (once)
+    if(!document.getElementById('arrow')){
+      const defs=el('defs',{}); const m=el('marker',{id:'arrow',viewBox:'0 0 10 10',refX:8,refY:5,
+        markerWidth:6,markerHeight:6,orient:'auto-start-reverse'});
+      m.appendChild(el('path',{d:'M0,0 L10,5 L0,10 z',fill:'#B4C0CB'})); defs.appendChild(m); svg.appendChild(defs);
+    }
+    fit(w,h);
+    applyHl();
+  }
+  function fit(w,h){ const R=svg.getBoundingClientRect();
+    scale=Math.min(1.1, Math.min(R.width/w, R.height/h)*0.92);
+    tx=(R.width-w*scale)/2; ty=(R.height-h*scale)/2; applyTransform(); }
+
+  /* ---- highlight ---- */
+  function hover(id){ if(selected||pathSet)return; highlight(neighborhood(id)); }
+  function neighborhood(id){ const s=new Set([id]);
+    allPrereqs(id).forEach(p=>s.add(p.id)); unlocks(id).forEach(u=>s.add(u.id)); return s; }
+  function highlight(nodeSet){
+    [...gNodes.children].forEach(g=>g.classList.toggle('dim',!nodeSet.has(g.dataset.id)));
+    [...gEdges.children].forEach(p=>{ const on=nodeSet.has(p.dataset.f)&&nodeSet.has(p.dataset.t);
+      p.classList.toggle('hl',on); p.classList.toggle('dim',!on); });
+  }
+  function clearHl(){ [...gNodes.children].forEach(g=>g.classList.remove('dim'));
+    [...gEdges.children].forEach(p=>p.classList.remove('hl','dim')); }
+  function applyHl(){ if(pathSet) highlight(pathSet); else if(selected) highlight(neighborhood(selected)); else clearHl(); }
+
+  /* ============================ pan / zoom ============================ */
+  let drag=null;
+  svg.addEventListener('mousedown',e=>{ drag={x:e.clientX,y:e.clientY,tx,ty}; svg.classList.add('grabbing'); });
+  window.addEventListener('mousemove',e=>{ if(!drag)return; tx=drag.tx+(e.clientX-drag.x); ty=drag.ty+(e.clientY-drag.y); applyTransform(); });
+  window.addEventListener('mouseup',()=>{ drag=null; svg.classList.remove('grabbing'); });
+  svg.addEventListener('wheel',e=>{ e.preventDefault(); const R=svg.getBoundingClientRect();
+    const mx=e.clientX-R.left, my=e.clientY-R.top; const f=e.deltaY<0?1.12:1/1.12;
+    const ns=Math.max(.25,Math.min(2.4,scale*f)); tx=mx-(mx-tx)*ns/scale; ty=my-(my-ty)*ns/scale; scale=ns; applyTransform(); },{passive:false});
+  document.getElementById('zoomIn').onclick=()=>zoomBtn(1.2);
+  document.getElementById('zoomOut').onclick=()=>zoomBtn(1/1.2);
+  document.getElementById('zoomFit').onclick=()=>drawGraph();
+  function zoomBtn(f){ const R=svg.getBoundingClientRect(),mx=R.width/2,my=R.height/2;
+    const ns=Math.max(.25,Math.min(2.4,scale*f)); tx=mx-(mx-tx)*ns/scale; ty=my-(my-ty)*ns/scale; scale=ns; applyTransform(); }
+  svg.addEventListener('click',()=>{ if(!pathSet){ selected=null; clearHl(); closeDrawer(); } });
+
+  /* ============================ list view ============================ */
+  function drawList(){
+    const box=document.getElementById('list'); box.innerHTML='';
+    const tracks = currentTrack==='all' ? G.tracks.map(t=>t.id) : [currentTrack];
+    tracks.forEach(tid=>{
+      const tk=trackById[tid]; const ns=NODES.filter(n=>n.tracks.includes(tid));
+      if(!ns.length) return;
+      const mastered=ns.filter(n=>state.progress[n.id]==='mastered').length;
+      const grp=document.createElement('div'); grp.className='track-group';
+      grp.innerHTML=`<div class="track-h"><span class="dot" style="width:13px;height:13px;border-radius:4px;background:${tk.color}"></span>
+        <b>${tk.name}</b><span class="pct">${mastered}/${ns.length} mastered · ${Math.round(mastered/ns.length*100)}%</span></div>`;
+      // order by layer then weight
+      const {pos}=computeLayout(ns.map(n=>n.id));
+      ns.sort((a,b)=>(pos[a.id].x-pos[b.id].x)||(b.weight||0)-(a.weight||0));
+      ns.forEach(n=>{ const st=status(n.id);
+        const row=document.createElement('div'); row.className='row';
+        row.innerHTML=`<span class="dot" style="background:${areaById[n.area].color}"></span>
+          <div class="t"><b>${n.label}</b><span>${areaById[n.area].name}${n.weight?' · '+n.weight+'% exam weight':''} · ${n.xp} XP</span></div>
+          <span class="st ${st}">${st}</span>`;
+        row.onclick=()=>openNode(n.id); grp.appendChild(row); });
+      box.appendChild(grp);
+    });
+  }
+
+  /* ============================ drawer ============================ */
+  function openNode(id){
+    selected=id;
+    const n=nodeById[id], area=areaById[n.area], st=status(id);
+    document.getElementById('dArea').textContent=area.name;
+    document.getElementById('dArea').style.background=area.color;
+    document.getElementById('dTitle').textContent=n.label;
+    const tracks=n.tracks.map(t=>trackById[t].name).join(' · ');
+    document.getElementById('dMeta').innerHTML=
+      `<span>⚡ ${n.xp} XP</span>${n.weight?`<span>📊 ${n.weight}% of ${trackById[n.tracks[0]].name.replace(/ Associate| Professional/,'')} exam</span>`:''}
+       <span style="flex-basis:100%">🎓 ${tracks}</span>`;
+    const body=document.getElementById('dBody'); body.innerHTML='';
+    body.innerHTML=`<h3>What this covers</h3><p>${n.summary}</p>`;
+    if(n.domain) body.innerHTML+=`<h3>Exam domain</h3><p>${n.domain}</p>`;
+
+    const pre=allPrereqs(id), unl=unlocks(id);
+    if(pre.length){ let h='<h3>Prerequisites</h3><div class="chips">';
+      pre.forEach(p=>{ const pn=nodeById[p.id], ps=status(p.id);
+        h+=`<div class="chip" data-go="${p.id}"><span class="d" style="background:${STCOL[ps]}"></span>${pn.label}<span class="type">${p.type}</span></div>`; });
+      body.innerHTML+=h+'</div>'; }
+    if(unl.length){ let h='<h3>Unlocks next</h3><div class="chips">';
+      unl.forEach(p=>{ const pn=nodeById[p.id];
+        h+=`<div class="chip" data-go="${p.id}"><span class="d" style="background:${areaById[pn.area].color}"></span>${pn.label}<span class="type">${p.type}</span></div>`; });
+      body.innerHTML+=h+'</div>'; }
+    if(n.links.length){ let h='<h3>Learn this</h3>';
+      n.links.forEach(l=>{
+        const tag = l.type==='academy' ? '▶ academy' : l.type;
+        const free = l.free ? '<span class="tg free">free</span>' : '';
+        const sub = l.type==='academy' ? '<span class="linksub">On-demand course · Databricks Academy</span>' : '';
+        h+=`<div class="linkrow"><span class="tg ${l.type}">${tag}</span><a href="${l.url}" target="_blank" rel="noopener">${l.title} ↗</a>${free}${sub}</div>`; });
+      body.innerHTML+=h; }
+    if(n.assessment&&n.assessment.length){ body.innerHTML+='<h3>Check your knowledge</h3>';
+      n.assessment.forEach((qz,qi)=>{ const box=document.createElement('div'); box.className='quiz';
+        box.innerHTML=`<div class="q">${qz.q}</div>`;
+        qz.options.forEach((o,oi)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o;
+          b.onclick=()=>{ if(box.dataset.done)return; box.dataset.done='1';
+            [...box.querySelectorAll('.opt')].forEach((btn,k)=>{ if(k===qz.answer)btn.classList.add('correct'); if(k===oi&&oi!==qz.answer)btn.classList.add('wrong'); });
+            box.querySelector('.exp').style.display='block';
+            if(oi===qz.answer && st!=='mastered'){ toast('✅','Correct! Mark this skill mastered to bank the XP.'); } };
+          box.appendChild(b); });
+        const ex=document.createElement('div'); ex.className='exp'; ex.textContent=qz.explain; box.appendChild(ex);
+        document.getElementById('dBody').appendChild(box); }); }
+
+    body.querySelectorAll('[data-go]').forEach(c=>c.onclick=()=>openNode(c.dataset.go));
+
+    // footer actions
+    const foot=document.getElementById('dFoot'); foot.innerHTML='';
+    const mBtn=document.createElement('button'); mBtn.className='btn primary';
+    mBtn.textContent = st==='mastered'?'✓ Mastered — undo':'Mark mastered';
+    if(st==='mastered'){ mBtn.className='btn ghost'; }
+    mBtn.onclick=()=>toggleMaster(id);
+    const lBtn=document.createElement('button'); lBtn.className='btn '+(st==='learning'?'on':'ghost');
+    lBtn.textContent = st==='learning'?'📖 Learning':'Start learning';
+    lBtn.onclick=()=>{ state.progress[id]= state.progress[id]==='learning'?undefined:'learning';
+      if(!state.progress[id])delete state.progress[id]; save(); refresh(); openNode(id); };
+    const pBtn=document.createElement('button'); pBtn.className='btn path'; pBtn.style.flex='0 0 auto'; pBtn.textContent='🧭 Path';
+    pBtn.title='Show shortest learning path to this skill'; pBtn.onclick=()=>showPath(id);
+    foot.append(lBtn,mBtn,pBtn);
+
+    document.getElementById('drawer').classList.add('open');
+    if(!pathSet) applyHl();
+  }
+  document.getElementById('dClose').onclick=closeDrawer;
+  function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); }
+
+  function toggleMaster(id){
+    const was=state.progress[id]==='mastered';
+    if(was){ delete state.progress[id]; }
+    else{ state.progress[id]='mastered'; bumpStreak(); checkBadges(id); }
+    save(); refresh();
+    if(!was){ const n=nodeById[id]; toast('⚡',`+${n.xp} XP — ${n.label} mastered!`); }
+    openNode(id);
+  }
+
+  /* ---- streak ---- */
+  function bumpStreak(){ const today=new Date().toISOString().slice(0,10);
+    if(state.lastDay===today) return;
+    const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+    state.streak = state.lastDay===y ? state.streak+1 : 1;
+    state.lastDay=today; }
+
+  /* ---- badges ---- */
+  const BADGES=[
+    {id:'first',e:'🌱',name:'First Step',test:()=>masteredCount()>=1},
+    {id:'five',e:'🖐️',name:'High Five',test:()=>masteredCount()>=5},
+    {id:'xp1k',e:'💎',name:'1,000 XP',test:()=>totalXP()>=1000},
+    {id:'streak3',e:'🔥',name:'3-Day Streak',test:()=>state.streak>=3},
+    {id:'area3',e:'🎯',name:'Area Master',test:()=>areaMastered()>=1},
+  ];
+  // track-completion badges
+  G.tracks.filter(t=>t.id!=='foundations'&&t.id!=='all').forEach(t=>{
+    BADGES.push({id:'trk-'+t.id,e:'🏅',name:t.name+' Ready',
+      test:()=>{ const ns=NODES.filter(n=>n.tracks.includes(t.id)); return ns.length&&ns.every(n=>state.progress[n.id]==='mastered'); }});
+  });
+  function masteredCount(){ return Object.values(state.progress).filter(v=>v==='mastered').length; }
+  function areaMastered(){ let c=0; G.areas.forEach(a=>{ const ns=NODES.filter(n=>n.area===a.id);
+    if(ns.length>=2&&ns.every(n=>state.progress[n.id]==='mastered'))c++; }); return c; }
+  function checkBadges(){ BADGES.forEach(b=>{ if(!state.badges[b.id]&&b.test()){ state.badges[b.id]=true;
+    setTimeout(()=>toast(b.e,`Badge unlocked · ${b.name}`),700); } }); save(); }
+
+  /* ---- shortest path ---- */
+  function showPath(target){
+    // gather all HARD ancestors, keep those not mastered, topo-order them + target
+    const need=new Set(), stack=[target];
+    while(stack.length){ const u=stack.pop();
+      hardPrereqs(u).forEach(p=>{ if(state.progress[p]!=='mastered' && !need.has(p)){ need.add(p); stack.push(p); } }); }
+    if(state.progress[target]!=='mastered') need.add(target);
+    if(!need.size){ toast('🎉','You already have everything for this skill!'); return; }
+    // topological order within need
+    const order=[]; const inN=id=>need.has(id);
+    const seen=new Set();
+    (function dfs(u){ if(seen.has(u))return; seen.add(u);
+      hardPrereqs(u).filter(inN).forEach(dfs); if(inN(u))order.push(u); })(target);
+    pathSet=new Set(order);
+    highlight(pathSet);
+    const banner=document.getElementById('banner');
+    document.getElementById('bannerTxt').innerHTML=`🧭 Path to <b>${nodeById[target].label}</b>: ${order.length} skill${order.length>1?'s':''} — `+
+      order.map((id,i)=>`${i+1}. ${nodeById[id].label}`).join('  →  ');
+    banner.style.display='flex';
+    closeDrawer();
+  }
+  document.getElementById('bannerClear').onclick=()=>{ pathSet=null; document.getElementById('banner').style.display='none'; clearHl(); };
+
+  /* ============================ dashboard refresh ============================ */
+  function refresh(){
+    const xp=totalXP(), li=levelInfo(xp);
+    document.getElementById('xpNum').textContent=xp.toLocaleString();
+    document.getElementById('lvlChip').textContent=`⚡ Level ${li.idx} · ${li.name}`;
+    const pct = li.max?100:Math.round((xp-li.floor)/(li.ceil-li.floor)*100);
+    document.getElementById('lvlBar').style.width=pct+'%';
+    document.getElementById('lvlCap').textContent = li.max?'Max level reached 🏆':`${(li.ceil-xp).toLocaleString()} XP to Level ${li.idx+1}`;
+    document.getElementById('stMast').textContent=masteredCount();
+    document.getElementById('stStreak').textContent=state.streak;
+    // track progress
+    const tid=currentTrack==='all'?null:currentTrack;
+    if(tid){ const ns=NODES.filter(n=>n.tracks.includes(tid)); const m=ns.filter(n=>state.progress[n.id]==='mastered').length;
+      document.getElementById('trackProg').textContent=`${trackById[tid].name}: ${m}/${ns.length} skills`;
+      document.getElementById('trackBar').style.width=(m/ns.length*100)+'%'; }
+    else { document.getElementById('trackProg').textContent='All tracks'; document.getElementById('trackBar').style.width='0%'; }
+    // badges
+    const bx=document.getElementById('badges'); bx.innerHTML='';
+    BADGES.forEach(b=>{ const got=!!state.badges[b.id]; const d=document.createElement('span');
+      d.className='badge'+(got?' got':''); d.innerHTML=`<span class="e">${got?b.e:'🔒'}</span>${b.name}`; bx.appendChild(d); });
+    // re-render current view
+    if(view==='graph'){ // re-color nodes in place if same track
+      [...gNodes.children].forEach(g=>{ const st=status(g.dataset.id);
+        g.className.baseVal=`node ${st}`;
+        g.querySelector('.ring').setAttribute('stroke',STCOL[st]);
+        const old=g.querySelector('.chk'); if(old)old.remove();
+        const n=nodeById[g.dataset.id], r=R_BASE+Math.min(9,(n.weight||8)*0.28);
+        if(st==='mastered'){ const t=el('text',{class:'chk',y:4}); t.textContent='✓'; g.insertBefore(t,g.querySelector('.lab')); }
+        else if(st==='locked'){ const t=el('text',{class:'chk',y:4,'font-size':11}); t.textContent='🔒'; g.insertBefore(t,g.querySelector('.lab')); }
+      });
+      applyHl();
+    } else drawList();
+  }
+
+  /* ============================ controls ============================ */
+  const sel=document.getElementById('trackSel');
+  G.tracks.filter(t=>t.id!=='foundations').forEach(t=>{ const o=document.createElement('option'); o.value=t.id; o.textContent=t.name; sel.appendChild(o); });
+  const allo=document.createElement('option'); allo.value='all'; allo.textContent='All tracks (full graph)'; sel.appendChild(allo);
+  sel.value=currentTrack;
+  sel.onchange=()=>{ currentTrack=sel.value; pathSet=null; document.getElementById('banner').style.display='none'; selected=null; closeDrawer();
+    if(view==='graph')drawGraph(); else drawList(); refresh(); };
+  document.querySelectorAll('.toggle button').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.toggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+    view=b.dataset.view;
+    document.getElementById('svg').style.display = view==='graph'?'block':'none';
+    document.querySelector('.ctrls').style.display = view==='graph'?'flex':'none';
+    document.querySelector('.hint').style.display = view==='graph'?'block':'none';
+    document.getElementById('list').style.display = view==='list'?'block':'none';
+    if(view==='graph')drawGraph(); else drawList();
+  });
+  document.getElementById('btnReset').onclick=()=>{ if(confirm('Reset all progress, XP, streak and badges?')){
+    state.progress={}; state.badges={}; state.streak=0; state.lastDay=null; save();
+    pathSet=null; document.getElementById('banner').style.display='none';
+    if(view==='graph')drawGraph(); else drawList(); refresh(); toast('↺','Progress reset'); } };
+  document.getElementById('btnAbout').onclick=()=>alert(
+    'Databricks Skills Knowledge Graph\n\n'+G.meta.disclaimer+
+    '\n\nBuild v'+G.meta.version+' · generated '+G.meta.generated+
+    '\nXP: '+G.meta.xpFormula+
+    '\n\nProgress is saved locally in your browser only.');
+
+  let toastT;
+  function toast(e,msg){ const t=document.getElementById('toast'); t.innerHTML=`<span class="e">${e}</span>${msg}`;
+    t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); }
+
+  window.addEventListener('resize',()=>{ if(view==='graph')drawGraph(); });
+
+  /* ---- go ---- */
+  drawGraph(); refresh();
+}
+</script>
+</body>
+</html>
