@@ -33,7 +33,8 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p _site/data
-          cp index.html _site/
+          cp landing.html _site/index.html   # landing page at /
+          cp index.html _site/app.html        # interactive graph at /app.html
           cp data/graph.json data/schema.md _site/data/
           touch _site/.nojekyll
 

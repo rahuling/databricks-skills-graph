@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks Skills Graph</title>
+<meta name="description" content="Every Databricks certification decomposed into a graph of prerequisite skills. Pick a track, place yourself with practice questions, and follow the shortest path to any skill.">
+<meta property="og:title" content="Databricks Skills Graph">
+<meta property="og:description" content="Every Databricks certification, mapped skill by skill. Interactive prerequisite graph with XP, streaks and shortest-path roadmaps.">
+<meta name="theme-color" content="#1B3139">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23FF3621' d='M16 2l12 6.5v15L16 30 4 23.5v-15L16 2zm0 3.2L7 10.1v11.8l9 4.9 9-4.9V10.1L16 5.2z'/%3E%3Ccircle fill='%23FF3621' cx='16' cy='16' r='3.4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B3139; --ink-2:#233F49; --ink-3:#2E4F5A;
+    --bg:#F6F7F9; --panel:#FFFFFF; --text:#1B3139; --muted:#5B6B78; --faint:#8496A3;
+    --line:#E1E6EC; --red:#FF3621; --red-d:#C4200F; --red-soft:#FFEDE9;
+    --on-ink:#FFFFFF; --on-ink-muted:#A9BAC5;
+    --shadow:0 1px 2px rgba(27,49,57,.05),0 10px 30px rgba(27,49,57,.08);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1B20; --panel:#15262D; --text:#E8EEF1; --muted:#9FB0BC; --faint:#71858F;
+      --line:#233A43; --red-soft:#3A1D19; --red-d:#FF6A55;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+      --ink:#0B171B; --ink-2:#132730; --ink-3:#1B3540;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1B20; --panel:#15262D; --text:#E8EEF1; --muted:#9FB0BC; --faint:#71858F;
+    --line:#233A43; --red-soft:#3A1D19; --red-d:#FF6A55;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    --ink:#0B171B; --ink-2:#132730; --ink-3:#1B3540;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit}
+  .mono{font-family:'DM Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  @media (max-width:640px){ .wrap{padding:0 16px} }
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--ink) 92%,transparent);
+    backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);
+    border-bottom:1px solid rgba(255,255,255,.06)}
+  nav .wrap{display:flex;align-items:center;gap:14px;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;color:var(--on-ink);text-decoration:none;font-weight:700;letter-spacing:-.01em}
+  .brand svg{width:26px;height:26px}
+  .spacer{flex:1}
+  .navlink{color:var(--on-ink-muted);text-decoration:none;font-size:14px;font-weight:500;padding:8px 10px;border-radius:8px}
+  .navlink:hover{color:#fff;background:rgba(255,255,255,.07)}
+  @media (max-width:720px){ .navlink.opt{display:none} }
+
+  .btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:15px;font-weight:600;
+    padding:12px 20px;border-radius:12px;text-decoration:none;border:1px solid transparent;cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease}
+  .btn:hover{transform:translateY(-1px)}
+  .btn-primary{background:var(--red);color:#fff;box-shadow:0 6px 20px rgba(255,54,33,.35)}
+  .btn-primary:hover{background:#FF4B38;box-shadow:0 10px 26px rgba(255,54,33,.42)}
+  .btn-ghost{color:var(--on-ink);border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.04)}
+  .btn-ghost:hover{background:rgba(255,255,255,.1)}
+  .btn-sm{font-size:13.5px;padding:8px 14px;border-radius:10px}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;background:
+      radial-gradient(900px 500px at 85% 20%, rgba(255,54,33,.20), transparent 60%),
+      radial-gradient(700px 400px at 10% 110%, rgba(34,114,180,.22), transparent 60%),
+      linear-gradient(180deg,var(--ink) 0%,var(--ink-2) 100%);
+    color:var(--on-ink);overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.35;
+    background:radial-gradient(circle at 1px 1px, rgba(255,255,255,.12) 1px, transparent 0) 0 0/24px 24px;
+    mask-image:linear-gradient(180deg,#000 0%,transparent 90%);-webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 90%)}
+  .hero .wrap{position:relative;display:grid;grid-template-columns:1.02fr 1fr;gap:40px;align-items:center;padding-top:72px;padding-bottom:88px}
+  @media (max-width:940px){ .hero .wrap{grid-template-columns:1fr;padding-top:48px;padding-bottom:56px} }
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;letter-spacing:.02em;
+    color:#FFC2B8;background:rgba(255,54,33,.12);border:1px solid rgba(255,54,33,.28);padding:6px 12px;border-radius:999px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 4px rgba(255,54,33,.25)}
+  h1{font-size:clamp(36px,5.2vw,60px);line-height:1.04;letter-spacing:-.035em;margin:20px 0 18px;font-weight:700;text-wrap:balance}
+  h1 em{font-style:normal;background:linear-gradient(90deg,#FF6A55,#FF3621 60%,#FF8A3D);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:clamp(16px,1.6vw,18.5px);color:var(--on-ink-muted);max-width:560px;margin:0 0 30px;text-wrap:pretty}
+  .cta{display:flex;flex-wrap:wrap;gap:12px}
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:40px;max-width:560px}
+  .stat{border-left:2px solid rgba(255,255,255,.14);padding:2px 0 2px 14px}
+  .stat b{display:block;font-size:clamp(24px,3vw,32px);font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+  .stat span{font-size:12.5px;color:var(--on-ink-muted)}
+  @media (max-width:480px){ .stats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px} }
+
+  .viz{position:relative;aspect-ratio:1.12/1;width:100%;border-radius:22px;
+    background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
+    border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 80px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08)}
+  .viz svg{position:absolute;inset:0;width:100%;height:100%}
+  .viz .cap{position:absolute;left:16px;bottom:14px;right:16px;display:flex;justify-content:space-between;gap:8px;
+    font-size:11.5px;color:var(--on-ink-muted);white-space:nowrap}
+  .viz .cap span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .viz .cap b{color:#fff;font-weight:600}
+  .viz .edge{fill:none;stroke:rgba(255,255,255,.13);stroke-width:1}
+  .viz .edge.on{stroke:#FF6A55;stroke-width:1.8;opacity:1}
+  .viz .node{transition:r .3s ease}
+  .viz .node.on{stroke:#fff;stroke-width:2}
+  .viz .lab{font:600 10.5px 'DM Sans',sans-serif;fill:#fff;paint-order:stroke;stroke:rgba(11,23,27,.85);stroke-width:3px;opacity:0;transition:opacity .3s}
+  .viz .lab.on{opacity:1}
+  @media (prefers-reduced-motion: reduce){ .viz .edge,.viz .node,.viz .lab{transition:none} }
+
+  /* ---------- sections ---------- */
+  section{padding:88px 0}
+  @media (max-width:640px){ section{padding:60px 0} }
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red-d);margin:0 0 10px}
+  h2{font-size:clamp(28px,3.4vw,40px);letter-spacing:-.03em;line-height:1.1;margin:0 0 14px;text-wrap:balance}
+  .sub{color:var(--muted);font-size:17px;max-width:640px;margin:0 0 40px;text-wrap:pretty}
+
+  /* features */
+  .features{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+  @media (max-width:980px){ .features{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (max-width:560px){ .features{grid-template-columns:1fr} }
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+  .feat .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--red-soft);color:var(--red-d);margin-bottom:16px}
+  .feat h3{font-size:17px;margin:0 0 6px;letter-spacing:-.01em}
+  .feat p{margin:0;color:var(--muted);font-size:14.5px}
+
+  /* tracks */
+  .tracks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  @media (max-width:360px){ .tracks{grid-template-columns:1fr} }
+  .track{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 18px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px;overflow:hidden;transition:transform .18s ease,border-color .18s ease}
+  .track:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--tc) 45%,var(--line))}
+  .track::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--tc)}
+  .track .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .track h3{margin:0;font-size:18px;letter-spacing:-.015em;line-height:1.25}
+  .lvl{flex:0 0 auto;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:999px;
+    color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent)}
+  .track .nums{display:flex;gap:22px}
+  .track .nums b{display:block;font-size:22px;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+  .track .nums span{font-size:12px;color:var(--muted)}
+  .meter{height:6px;border-radius:6px;background:color-mix(in srgb,var(--text) 7%,transparent);overflow:hidden;display:flex}
+  .meter i{display:block;height:100%}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;font-weight:500;color:var(--muted);padding:4px 9px;border-radius:8px;border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px;background:var(--bg)}
+  .chip i{width:8px;height:8px;border-radius:3px;display:inline-block}
+  .track .acts{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:6px;gap:10px}
+  .go{font-weight:600;font-size:14.5px;color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .go:hover{color:var(--red-d)}
+  .go svg{transition:transform .15s}
+  .go:hover svg{transform:translateX(3px)}
+  .ext{font-size:12.5px;color:var(--faint);text-decoration:none}
+  .ext:hover{color:var(--muted);text-decoration:underline}
+
+  /* areas */
+  .areas-sec{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:10px}
+  .area{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
+  .area i{width:12px;height:12px;border-radius:4px;flex:0 0 auto}
+  .area span{flex:1;font-weight:500;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .area b{font-size:13px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* how */
+  .how{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+  @media (max-width:900px){ .how{grid-template-columns:1fr} }
+  .steps{list-style:none;padding:0;margin:0;display:grid;gap:14px;counter-reset:s}
+  .steps li{display:grid;grid-template-columns:36px 1fr;gap:14px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .steps li::before{counter-increment:s;content:counter(s);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+    background:var(--ink);color:#fff;font-weight:700}
+  .steps b{display:block;margin-bottom:2px}
+  .steps span{color:var(--muted);font-size:14.5px}
+  .xpcard{background:linear-gradient(160deg,var(--ink),var(--ink-3));color:#fff;border-radius:20px;padding:28px;box-shadow:var(--shadow)}
+  .xpcard .row{display:flex;justify-content:space-between;align-items:baseline}
+  .xpcard .big{font-size:44px;font-weight:700;letter-spacing:-.03em}
+  .xpcard .lvlpill{font-size:12px;font-weight:700;color:#FFC2B8;background:rgba(255,54,33,.18);padding:5px 11px;border-radius:999px}
+  .xpcard .bar{height:9px;border-radius:6px;background:rgba(255,255,255,.1);margin:16px 0 8px;overflow:hidden}
+  .xpcard .bar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--red),#FF8A3D);border-radius:6px}
+  .xpcard .small{font-size:12.5px;color:var(--on-ink-muted)}
+  .xpcard .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .xpcard .bdg{font-size:12.5px;font-weight:600;padding:6px 10px;border-radius:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}
+  .formula{margin-top:18px;font-size:12.5px;color:var(--on-ink-muted);border-top:1px solid rgba(255,255,255,.1);padding-top:14px}
+
+  /* cta band */
+  .band{background:linear-gradient(120deg,var(--ink),var(--ink-3));color:#fff;border-radius:24px;padding:48px;display:flex;
+    align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden}
+  .band::after{content:"";position:absolute;right:-80px;top:-80px;width:320px;height:320px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,54,33,.35),transparent 70%)}
+  .band h2{margin:0 0 6px;color:#fff}
+  .band p{margin:0;color:var(--on-ink-muted)}
+  .band > *{position:relative;z-index:1}
+  @media (max-width:640px){ .band{padding:32px 22px} }
+
+  footer{padding:40px 0 56px;color:var(--faint);font-size:13px}
+  footer .wrap{display:grid;gap:14px}
+  footer .row{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+  footer a{color:var(--muted)}
+  .disc{max-width:860px;line-height:1.6}
+  .notice{display:none;margin-top:18px;font-size:13px;color:#FFC2B8}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#FF3621" d="M16 2l12 6.5v15L16 30 4 23.5v-15L16 2zm0 3.2L7 10.1v11.8l9 4.9 9-4.9V10.1L16 5.2z"/><circle fill="#FF3621" cx="16" cy="16" r="3.4"/></svg>
+      Skills Graph
+    </a>
+    <div class="spacer"></div>
+    <a class="navlink opt" href="#tracks">Tracks</a>
+    <a class="navlink opt" href="#how">How it works</a>
+    <a class="navlink opt" href="https://github.com/rahuling/databricks-skills-graph">GitHub</a>
+    <a class="btn btn-primary btn-sm" href="app.html">Open the graph</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow"><span class="dot"></span>Free · open source · no sign-up</span>
+      <h1>Every Databricks certification, <em>mapped skill by skill.</em></h1>
+      <p class="lede">An interactive prerequisite graph of the Databricks certification skills. Pick a track, place yourself with practice questions, and follow the shortest path to any skill. Earn XP as you go.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="app.html">
+          Explore the graph
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0L9 4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="#tracks">Browse tracks</a>
+      </div>
+      <div class="stats" aria-label="Graph at a glance">
+        <div class="stat"><b id="sNodes">79</b><span>skills</span></div>
+        <div class="stat"><b id="sEdges">103</b><span>prerequisites</span></div>
+        <div class="stat"><b id="sTracks">7</b><span>cert tracks</span></div>
+        <div class="stat"><b id="sAreas">19</b><span>product areas</span></div>
+      </div>
+      <p class="notice" id="notice">Live data couldn't be loaded here. Open the GitHub Pages site to see the full graph.</p>
+    </div>
+    <div class="viz" id="viz" role="img" aria-label="Preview of the skills prerequisite graph, with an example learning path highlighted">
+      <svg id="vizSvg" viewBox="0 0 560 500" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="cap"><span id="pathCap">Prerequisite graph · coloured by product area</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <p class="kicker">Why a graph</p>
+    <h2>Learn in the order the skills actually depend on each other.</h2>
+    <p class="sub">Exam guides give you a list of topics. This gives you the connections between them: what to learn first, what it unlocks next, and where the certifications overlap.</p>
+    <div class="features">
+      <div class="feat">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M5 14l7 7 7-7"/></svg></div>
+        <h3>Top-down</h3>
+        <p>Start from a certification goal and see every sub-skill it requires, weighted by the exam guide.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V3M5 10l7-7 7 7"/></svg></div>
+        <h3>Bottom-up</h3>
+        <p>Mark what you already know and the graph shows which skills unlock next.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h5a3 3 0 0 1 3 3v6a3 3 0 0 0 3 3"/></svg></div>
+        <h3>Shortest path</h3>
+        <p>Pick any skill and get the minimal roadmap to it from where you are today.</p>
+      </div>
+      <div class="feat">
+        <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 6.5 7 .9-5.1 4.8 1.3 7L12 17.8 5.8 21.2l1.3-7L2 9.4l7-.9z"/></svg></div>
+        <h3>Gamified</h3>
+        <p>XP per skill, day streaks and badges. Progress stays private in your browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tracks" style="padding-top:0">
+  <div class="wrap">
+    <p class="kicker">Certification tracks</p>
+    <h2>Choose where you're headed.</h2>
+    <p class="sub">Each track opens the graph filtered to the skills its exam tests. A skill shared by several certifications is one node, so progress carries across tracks.</p>
+    <div class="tracks" id="trackGrid"></div>
+  </div>
+</section>
+
+<section class="areas-sec" id="areas">
+  <div class="wrap">
+    <p class="kicker">Coverage</p>
+    <h2>Across the Databricks platform.</h2>
+    <p class="sub">Skills are grouped into product areas, from Delta Lake and Unity Catalog to Vector Search and AI/BI Genie.</p>
+    <div class="areas" id="areaGrid"></div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap how">
+    <div>
+      <p class="kicker">How it works</p>
+      <h2>From “where do I start?” to exam-ready.</h2>
+      <ol class="steps">
+        <li><div><b>Pick a track</b><span>Filter the graph to one certification, or view every track at once.</span></div></li>
+        <li><div><b>Place yourself</b><span>Answer short practice questions on a skill to mark it mastered and earn its XP.</span></div></li>
+        <li><div><b>Follow the path</b><span>Unlocked skills light up. Ask for the shortest path to any skill and work through it.</span></div></li>
+        <li><div><b>Go deeper</b><span>Every node links to its Databricks Academy course and the relevant docs.</span></div></li>
+      </ol>
+    </div>
+    <div class="xpcard" aria-hidden="true">
+      <div class="row"><span class="small">Your progress</span><span class="lvlpill">Level 4 · Practitioner</span></div>
+      <div class="row" style="margin-top:6px"><span class="big mono">2,450</span><span class="small">🔥 9-day streak</span></div>
+      <div class="bar"><i></i></div>
+      <div class="small">550 XP to next level</div>
+      <div class="badges">
+        <span class="bdg">🏁 First skill</span><span class="bdg">🧱 Delta Lake</span><span class="bdg">🔐 Unity Catalog</span><span class="bdg">⚡ 7-day streak</span>
+      </div>
+      <div class="formula mono" id="xpFormula">xp = max(50, round(weight% × 10))</div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="band">
+      <div>
+        <h2>Ready to map your path?</h2>
+        <p>Open the graph and start with any certification. Nothing to install.</p>
+      </div>
+      <a class="btn btn-primary" href="app.html">
+        Open the graph
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0L9 4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="disc" id="disclaimer">Not an official Databricks product. This is a community / enablement resource. Nodes are seeded from the published certification exam-guide domains, their weightings and Academy learning paths. Always verify against the current official exam guides.</p>
+    <div class="row">
+      <a href="https://github.com/rahuling/databricks-skills-graph">Source on GitHub</a>
+      <a href="data/graph.json">Raw graph (JSON)</a>
+      <a href="https://www.databricks.com/learn/certification">Official certification guides</a>
+      <span>MIT licensed</span>
+      <span id="buildInfo" class="mono"></span>
+    </div>
+    <p style="margin:0">Databricks, Delta Lake, Unity Catalog, MLflow and related marks are trademarks of Databricks, Inc. This project is not affiliated with or endorsed by Databricks.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const LEVEL_LABEL={foundational:'Foundational',associate:'Associate',professional:'Professional',specialty:'Specialty'};
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const reduceMotion=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const arrow='<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10m0 0L9 4m4 4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  fetch('data/graph.json',{cache:'no-cache'})
+    .then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(render)
+    .catch(()=>{ document.getElementById('notice').style.display='block'; });
+
+  function countUp(el,to){
+    if(reduceMotion){ el.textContent=to; return; }
+    const t0=performance.now(), d=900;
+    (function step(t){ const k=Math.min(1,(t-t0)/d), e=1-Math.pow(1-k,3);
+      el.textContent=Math.round(to*e); if(k<1) requestAnimationFrame(step); })(t0);
+  }
+
+  function render(G){
+    const areaById=Object.fromEntries(G.areas.map(a=>[a.id,a]));
+    const certTracks=G.tracks.filter(t=>t.id!=='foundations');
+
+    countUp(document.getElementById('sNodes'),G.nodes.length);
+    countUp(document.getElementById('sEdges'),G.edges.length);
+    countUp(document.getElementById('sTracks'),certTracks.length);
+    countUp(document.getElementById('sAreas'),G.areas.length);
+    if(G.meta){
+      if(G.meta.disclaimer) document.getElementById('disclaimer').textContent=G.meta.disclaimer;
+      if(G.meta.xpFormula) document.getElementById('xpFormula').textContent=G.meta.xpFormula.split(';')[0];
+      document.getElementById('buildInfo').textContent=`v${G.meta.version} · ${G.meta.generated}`;
+    }
+
+    // ---- track cards ----
+    const grid=document.getElementById('trackGrid');
+    grid.innerHTML=certTracks.map(t=>{
+      const nodes=G.nodes.filter(n=>n.tracks.includes(t.id));
+      const xp=nodes.reduce((s,n)=>s+(n.xp||0),0);
+      const byArea={}; nodes.forEach(n=>byArea[n.area]=(byArea[n.area]||0)+1);
+      const areas=Object.entries(byArea).sort((a,b)=>b[1]-a[1]);
+      const meter=areas.map(([a,c])=>`<i style="width:${(c/nodes.length*100).toFixed(2)}%;background:${areaById[a]?.color||'#888'}" title="${esc(areaById[a]?.name||a)}: ${c}"></i>`).join('');
+      const chips=areas.slice(0,3).map(([a])=>`<span class="chip"><i style="background:${areaById[a]?.color||'#888'}"></i>${esc(areaById[a]?.name||a)}</span>`).join('');
+      return `<article class="track" style="--tc:${t.color}">
+        <div class="top"><h3>${esc(t.name)}</h3><span class="lvl">${esc(LEVEL_LABEL[t.level]||t.level)}</span></div>
+        <div class="nums"><div><b>${nodes.length}</b><span>skills</span></div><div><b>${xp.toLocaleString()}</b><span>total XP</span></div><div><b>${areas.length}</b><span>areas</span></div></div>
+        <div class="meter" aria-hidden="true">${meter}</div>
+        <div class="chips">${chips}</div>
+        <div class="acts">
+          <a class="go" href="app.html?track=${encodeURIComponent(t.id)}">Explore track ${arrow}</a>
+          ${t.certUrl?`<a class="ext" href="${esc(t.certUrl)}" target="_blank" rel="noopener">Exam guide ↗</a>`:''}
+        </div>
+      </article>`;
+    }).join('');
+
+    // ---- areas ----
+    const areaCount={}; G.nodes.forEach(n=>areaCount[n.area]=(areaCount[n.area]||0)+1);
+    document.getElementById('areaGrid').innerHTML=G.areas
+      .slice().sort((a,b)=>(areaCount[b.id]||0)-(areaCount[a.id]||0))
+      .map(a=>`<div class="area"><i style="background:${a.color}"></i><span>${esc(a.name)}</span><b>${areaCount[a.id]||0}</b></div>`).join('');
+
+    drawViz(G,areaById);
+  }
+
+  // ---- hero graph preview: layered DAG, animated path highlight ----
+  function drawViz(G,areaById){
+    const svg=document.getElementById('vizSvg'), NS='http://www.w3.org/2000/svg';
+    const W=560,H=500,PX=34,PT=30,PB=62;
+    const ids=G.nodes.map(n=>n.id), byId=Object.fromEntries(G.nodes.map(n=>[n.id,n]));
+    const preds={}, succ={}; ids.forEach(i=>{preds[i]=[];succ[i]=[];});
+    const dagEdges=G.edges.filter(e=>e.type!=='cooccur' && byId[e.from] && byId[e.to]);
+    dagEdges.forEach(e=>{ preds[e.to].push(e.from); succ[e.from].push(e.to); });
+
+    // longest-path depth
+    const depth={}; const visit=(i,stack=new Set())=>{ if(depth[i]!=null) return depth[i]; if(stack.has(i)) return 0;
+      stack.add(i); depth[i]=preds[i].length?1+Math.max(...preds[i].map(p=>visit(p,stack))):0; stack.delete(i); return depth[i]; };
+    ids.forEach(i=>visit(i));
+    const maxD=Math.max(...Object.values(depth));
+    const layers=[]; ids.forEach(i=>(layers[depth[i]]=layers[depth[i]]||[]).push(i));
+    // order within layer by mean parent position, then area, to reduce crossings
+    const pos={};
+    layers.forEach((L,d)=>{
+      L.sort((a,b)=>{
+        const m=x=>preds[x].length?preds[x].reduce((s,p)=>s+(pos[p]?.y||0),0)/preds[x].length:0;
+        return (m(a)-m(b)) || byId[a].area.localeCompare(byId[b].area);
+      });
+      const x=PX+(maxD?d/maxD:0.5)*(W-2*PX);
+      L.forEach((id,k)=>{ const y=PT+((k+0.5)/L.length)*(H-PT-PB); pos[id]={x,y}; });
+    });
+
+    const gE=document.createElementNS(NS,'g'), gN=document.createElementNS(NS,'g'), gL=document.createElementNS(NS,'g');
+    svg.append(gE,gN,gL);
+    const edgeEl={};
+    dagEdges.forEach(e=>{
+      const a=pos[e.from], b=pos[e.to], mx=(a.x+b.x)/2;
+      const p=document.createElementNS(NS,'path');
+      p.setAttribute('d',`M${a.x},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`);
+      p.setAttribute('class','edge'); gE.appendChild(p); edgeEl[e.from+'>'+e.to]=p;
+    });
+    const nodeEl={}, labEl={};
+    ids.forEach((id,k)=>{
+      const n=byId[id], c=document.createElementNS(NS,'circle');
+      c.setAttribute('cx',pos[id].x); c.setAttribute('cy',pos[id].y);
+      c.setAttribute('r',3.2+Math.min(4,(n.xp||50)/60));
+      c.setAttribute('fill',areaById[n.area]?.color||'#888'); c.setAttribute('class','node');
+      const tt=document.createElementNS(NS,'title'); tt.textContent=n.label; c.appendChild(tt);
+      if(!reduceMotion){ c.style.opacity=0; c.style.transition='opacity .6s ease '+(depth[id]*120+k*4)+'ms'; requestAnimationFrame(()=>requestAnimationFrame(()=>c.style.opacity=1)); }
+      gN.appendChild(c); nodeEl[id]=c;
+      const t=document.createElementNS(NS,'text');
+      t.textContent=n.label.length>30?n.label.slice(0,28)+'…':n.label;
+      const right=pos[id].x<W*0.45; t.setAttribute('x',pos[id].x+(right?9:-9)); t.setAttribute('y',pos[id].y+3.5);
+      t.setAttribute('text-anchor',right?'start':'end'); t.setAttribute('class','lab'); gL.appendChild(t); labEl[id]=t;
+    });
+
+    // pick random root→leaf paths through hard/soft prerequisites and highlight them in turn
+    const leaves=ids.filter(i=>!succ[i].length && preds[i].length);
+    const pathTo=leaf=>{ const p=[leaf]; let cur=leaf;
+      while(preds[cur].length){ cur=preds[cur].reduce((best,x)=>depth[x]>depth[best]?x:best,preds[cur][0]); p.unshift(cur); } return p; };
+    const cap=document.getElementById('pathCap');
+    let on=[];
+    const clear=()=>{ on.forEach(el=>el.classList.remove('on')); on=[]; };
+    const show=()=>{
+      clear();
+      const deep=leaves.filter(l=>depth[l]>=Math.max(2,maxD-2));
+      const leaf=(deep.length?deep:leaves)[Math.floor(Math.random()*(deep.length||leaves.length))];
+      if(!leaf) return;
+      const p=pathTo(leaf);
+      p.forEach((id,i)=>{
+        nodeEl[id].classList.add('on'); on.push(nodeEl[id]);
+        if(i===0||i===p.length-1){ labEl[id].classList.add('on'); on.push(labEl[id]); }
+        if(i>0){ const e=edgeEl[p[i-1]+'>'+id]; if(e){ e.classList.add('on'); on.push(e); } }
+      });
+      cap.innerHTML=`Path to <b>${esc(byId[leaf].label)}</b> · ${p.length} steps`;
+    };
+    setTimeout(show, reduceMotion?0:900);
+    if(!reduceMotion) setInterval(show,4200);
+  }
+})();
+</script>
+</body>
+</html>
