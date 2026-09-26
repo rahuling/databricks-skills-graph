@@ -191,6 +191,7 @@
       <div class="sub header-sub">Traverse the certification skill map · earn XP · chart your path</div>
     </div>
     <div class="spacer"></div>
+    <a class="hbtn" id="btnHome" href="./" style="text-decoration:none">Home</a>
     <button class="hbtn" id="btnAbout">About</button>
     <button class="hbtn" id="btnReset">Reset progress</button>
   </header>
@@ -291,6 +292,11 @@ function boot(G){
   state.lastDay  = state.lastDay  || null;
 
   let view='graph', currentTrack='de-assoc', selected=null, pathSet=null;
+  // Deep link: ?track=<id> (or ?track=all) preselects a learning track.
+  try{
+    const qt=new URLSearchParams(location.search).get('track');
+    if(qt && (qt==='all' || G.tracks.some(t=>t.id===qt && t.id!=='foundations'))) currentTrack=qt;
+  }catch(e){}
 
   /* ---- status logic ---- */
   const hardPrereqs = id => EDGES.filter(e=>e.to===id && e.type==='hard').map(e=>e.from);
@@ -624,7 +630,8 @@ function boot(G){
   G.tracks.filter(t=>t.id!=='foundations').forEach(t=>{ const o=document.createElement('option'); o.value=t.id; o.textContent=t.name; sel.appendChild(o); });
   const allo=document.createElement('option'); allo.value='all'; allo.textContent='All tracks (full graph)'; sel.appendChild(allo);
   sel.value=currentTrack;
-  sel.onchange=()=>{ currentTrack=sel.value; pathSet=null; document.getElementById('banner').style.display='none'; selected=null; closeDrawer();
+  sel.onchange=()=>{ currentTrack=sel.value; pathSet=null;
+    try{ const u=new URL(location.href); u.searchParams.set('track',currentTrack); history.replaceState(null,'',u); }catch(e){} document.getElementById('banner').style.display='none'; selected=null; closeDrawer();
     if(view==='graph')drawGraph(); else drawList(); refresh(); };
   document.querySelectorAll('.toggle button').forEach(b=>b.onclick=()=>{
     document.querySelectorAll('.toggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -650,6 +657,9 @@ function boot(G){
     t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); }
 
   window.addEventListener('resize',()=>{ if(view==='graph')drawGraph(); });
+
+  // The Home link points at the GitHub Pages landing page; hide it when opened as a local file.
+  if(location.protocol==='file:') document.getElementById('btnHome').style.display='none';
 
   /* ---- go ---- */
   drawGraph(); refresh();

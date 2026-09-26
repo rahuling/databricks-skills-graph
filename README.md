@@ -59,6 +59,23 @@ branch (root), and it's live at `https://<user>.github.io/databricks-skills-grap
 Node status: **mastered** (green ✓) · **learning** (amber) · **available** — all hard prereqs met
 (blue) · **locked** (grey 🔒).
 
+## Live site
+
+Deployed to GitHub Pages at **https://rahuling.github.io/databricks-skills-graph/** by
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) on every push to `main`. The workflow
+reruns `build_graph.py` (so the DAG is re-validated and `index.html` is rebuilt from source) and
+publishes:
+
+| URL | Source |
+|---|---|
+| `/` | `landing.html`: landing page (stats, track cards, area coverage, animated graph preview), rendered live from `data/graph.json` |
+| `/app.html` | `index.html`: the interactive graph. `app.html?track=<id>` (or `?track=all`) opens a specific track |
+| `/data/graph.json` | Raw graph export |
+ Pull requests run the build as a check without
+deploying.
+
+One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
 ## Editing / extending the graph
 
 [`build_graph.py`](build_graph.py) is the source of truth. It holds the node/edge definitions
@@ -80,6 +97,7 @@ relationship, add an `e(from, to, type)`; then rerun the builder. See
 | File | Role |
 |---|---|
 | `index.html` | The self-contained app (generated). Open or host this. |
+| `landing.html` | GitHub Pages landing page (reads `data/graph.json`; served at `/`). |
 | `index.template.html` | App shell (HTML/CSS/JS) with a `<!--__GRAPH_DATA__-->` inject point. |
 | `build_graph.py` | Source of truth: node/edge/course definitions → builds `index.html` + `graph.json`. |
 | `data/graph.json` | Raw graph export (nodes, edges, tracks, areas). |

@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0.0",
-    "generated": "2026-09-15",
+    "generated": "2026-09-26",
     "disclaimer": "Community/enablement resource, not an official Databricks product. Nodes are seeded from PUBLISHED certification exam-guide domains, their percentage weightings, and Academy learning paths. Exam objectives are referenced; no confidential exam questions are used. Practice questions are original scenarios for self-placement only. Verify against the current official exam guides.",
     "xpFormula": "xp = max(50, round(weight% * 10)); nodes without published weights default to 100"
   },
