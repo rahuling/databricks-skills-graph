@@ -59,6 +59,16 @@ branch (root), and it's live at `https://<user>.github.io/databricks-skills-grap
 Node status: **mastered** (green ✓) · **learning** (amber) · **available** — all hard prereqs met
 (blue) · **locked** (grey 🔒).
 
+## Live site
+
+Deployed to GitHub Pages at **https://rahuling.github.io/databricks-skills-graph/** by
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) on every push to `main`. The workflow
+reruns `build_graph.py` (so the DAG is re-validated and `index.html` is rebuilt from source) and
+publishes `index.html` plus `data/graph.json`. Pull requests run the build as a check without
+deploying.
+
+One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
 ## Editing / extending the graph
 
 [`build_graph.py`](build_graph.py) is the source of truth. It holds the node/edge definitions
